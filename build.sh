@@ -4,7 +4,7 @@ set -euo pipefail
 main() {
   DART_SASS_VERSION=1.77.8
   GO_VERSION=1.22.5
-  HUGO_VERSION=0.124.1
+  HUGO_VERSION=0.146.0
 
   export TZ=UTC
 
