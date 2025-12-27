@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>SSL/TLS và HTTPS trong Java | Tien Phat&#39;s blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="Tìm hiểu cách implement SSL/TLS cho ứng dụng Java. Bảo mật kết nối mạng với certificates và encryption...">
+<meta name="author" content="map[email:dtphat414@gmail.com name:Đào Tiến Phát]">
+<link rel="canonical" href="//localhost:1313/posts/ssl-tls-https/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.fd5566c526ae48aadabd950798a2dc3568536401560eae5caac3765a42a9e7b5.css" integrity="sha256-/VVmxSauSKravZUHmKLcNWhTZAFWDq5cqsN2WkKp57U=" rel="preload stylesheet" as="style">
+<link rel="icon" href="//localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="//localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="//localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="//localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="//localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="//localhost:1313/posts/ssl-tls-https/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="//localhost:1313/" accesskey="h" title="Tien Phat&#39;s blog (Alt + H)">Tien Phat&#39;s blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="//localhost:1313/" title="Trang chủ">
+                    <span>Trang chủ</span>
+                </a>
+            </li>
+            <li>
+                <a href="//localhost:1313/about/" title="Về tôi">
+                    <span>Về tôi</span>
+                </a>
+            </li>
+            <li>
+                <a href="//localhost:1313/contact/" title="Liên hệ">
+                    <span>Liên hệ</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      SSL/TLS và HTTPS trong Java
+    </h1>
+    <div class="post-description">
+      Tìm hiểu cách implement SSL/TLS cho ứng dụng Java. Bảo mật kết nối mạng với certificates và encryption...
+    </div>
+    <div class="post-meta"><span title='2025-12-05 00:00:00 +0000 UTC'>December 5, 2025</span>&nbsp;·&nbsp;<span>map[email:dtphat414@gmail.com name:Đào Tiến Phát]</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>SSL/TLS là giao thức bảo mật quan trọng nhất cho network communication. Trong bài viết này, chúng ta sẽ tìm hiểu cách implement SSL/TLS trong Java applications.</p>
+<h2 id="ssl-vs-tls">SSL vs TLS<a hidden class="anchor" aria-hidden="true" href="#ssl-vs-tls">#</a></h2>
+<ul>
+<li><strong>SSL (Secure Sockets Layer)</strong>: Phiên bản cũ (đã deprecated)</li>
+<li><strong>TLS (Transport Layer Security)</strong>: Phiên bản hiện đại và bảo mật hơn</li>
+</ul>
+<p>TLS 1.2 và TLS 1.3 là các phiên bản được khuyến nghị sử dụng hiện nay.</p>
+<h2 id="how-tls-works">How TLS Works<a hidden class="anchor" aria-hidden="true" href="#how-tls-works">#</a></h2>
+<h3 id="tls-handshake-process">TLS Handshake Process<a hidden class="anchor" aria-hidden="true" href="#tls-handshake-process">#</a></h3>
+<ol>
+<li>Client gửi &ldquo;Client Hello&rdquo; với supported cipher suites</li>
+<li>Server trả về &ldquo;Server Hello&rdquo; và certificate</li>
+<li>Client verify certificate</li>
+<li>Trao đổi keys sử dụng asymmetric encryption</li>
+<li>Establish encrypted connection với symmetric encryption</li>
+</ol>
+<h2 id="creating-ssltls-server">Creating SSL/TLS Server<a hidden class="anchor" aria-hidden="true" href="#creating-ssltls-server">#</a></h2>
+<h3 id="https-server-với-java">HTTPS Server với Java<a hidden class="anchor" aria-hidden="true" href="#https-server-với-java">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">import</span> javax.net.ssl.*;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.io.*;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.security.*;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SecureServer</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Load keystore</span>
+</span></span><span style="display:flex;"><span>        KeyStore keyStore <span style="color:#f92672">=</span> KeyStore.<span style="color:#a6e22e">getInstance</span>(<span style="color:#e6db74">&#34;JKS&#34;</span>);
+</span></span><span style="display:flex;"><span>        FileInputStream keyStoreFile <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FileInputStream(<span style="color:#e6db74">&#34;server.jks&#34;</span>);
+</span></span><span style="display:flex;"><span>        keyStore.<span style="color:#a6e22e">load</span>(keyStoreFile, <span style="color:#e6db74">&#34;password&#34;</span>.<span style="color:#a6e22e">toCharArray</span>());
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Create key manager factory</span>
+</span></span><span style="display:flex;"><span>        KeyManagerFactory kmf <span style="color:#f92672">=</span> KeyManagerFactory.<span style="color:#a6e22e">getInstance</span>(<span style="color:#e6db74">&#34;SunX509&#34;</span>);
+</span></span><span style="display:flex;"><span>        kmf.<span style="color:#a6e22e">init</span>(keyStore, <span style="color:#e6db74">&#34;password&#34;</span>.<span style="color:#a6e22e">toCharArray</span>());
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Create SSL context</span>
+</span></span><span style="display:flex;"><span>        SSLContext sslContext <span style="color:#f92672">=</span> SSLContext.<span style="color:#a6e22e">getInstance</span>(<span style="color:#e6db74">&#34;TLS&#34;</span>);
+</span></span><span style="display:flex;"><span>        sslContext.<span style="color:#a6e22e">init</span>(kmf.<span style="color:#a6e22e">getKeyManagers</span>(), <span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Create server socket</span>
+</span></span><span style="display:flex;"><span>        SSLServerSocketFactory sslServerSocketFactory <span style="color:#f92672">=</span> 
+</span></span><span style="display:flex;"><span>            sslContext.<span style="color:#a6e22e">getServerSocketFactory</span>();
+</span></span><span style="display:flex;"><span>        SSLServerSocket serverSocket <span style="color:#f92672">=</span> 
+</span></span><span style="display:flex;"><span>            (SSLServerSocket) sslServerSocketFactory.<span style="color:#a6e22e">createServerSocket</span>(8443);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;Secure server started on port 8443&#34;</span>);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> (<span style="color:#66d9ef">true</span>) {
+</span></span><span style="display:flex;"><span>            SSLSocket clientSocket <span style="color:#f92672">=</span> (SSLSocket) serverSocket.<span style="color:#a6e22e">accept</span>();
+</span></span><span style="display:flex;"><span>            handleClient(clientSocket);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">handleClient</span>(SSLSocket socket) <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex;"><span>        BufferedReader in <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BufferedReader(
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">new</span> InputStreamReader(socket.<span style="color:#a6e22e">getInputStream</span>()));
+</span></span><span style="display:flex;"><span>        PrintWriter out <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> PrintWriter(socket.<span style="color:#a6e22e">getOutputStream</span>(), <span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        String message <span style="color:#f92672">=</span> in.<span style="color:#a6e22e">readLine</span>();
+</span></span><span style="display:flex;"><span>        out.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;Secure echo: &#34;</span> <span style="color:#f92672">+</span> message);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        socket.<span style="color:#a6e22e">close</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="creating-ssltls-client">Creating SSL/TLS Client<a hidden class="anchor" aria-hidden="true" href="#creating-ssltls-client">#</a></h2>
+<h3 id="https-client">HTTPS Client<a hidden class="anchor" aria-hidden="true" href="#https-client">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SecureClient</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Trust all certificates (development only!)</span>
+</span></span><span style="display:flex;"><span>        TrustManager<span style="color:#f92672">[]</span> trustAllCerts <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TrustManager<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">new</span> X509TrustManager() {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">public</span> X509Certificate<span style="color:#f92672">[]</span> <span style="color:#a6e22e">getAcceptedIssuers</span>() { <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>; }
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">checkClientTrusted</span>(X509Certificate<span style="color:#f92672">[]</span> certs, String authType) {}
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">checkServerTrusted</span>(X509Certificate<span style="color:#f92672">[]</span> certs, String authType) {}
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        SSLContext sslContext <span style="color:#f92672">=</span> SSLContext.<span style="color:#a6e22e">getInstance</span>(<span style="color:#e6db74">&#34;TLS&#34;</span>);
+</span></span><span style="display:flex;"><span>        sslContext.<span style="color:#a6e22e">init</span>(<span style="color:#66d9ef">null</span>, trustAllCerts, <span style="color:#66d9ef">new</span> SecureRandom());
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        SSLSocketFactory sslSocketFactory <span style="color:#f92672">=</span> sslContext.<span style="color:#a6e22e">getSocketFactory</span>();
+</span></span><span style="display:flex;"><span>        SSLSocket socket <span style="color:#f92672">=</span> (SSLSocket) sslSocketFactory.<span style="color:#a6e22e">createSocket</span>(<span style="color:#e6db74">&#34;localhost&#34;</span>, 8443);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        PrintWriter out <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> PrintWriter(socket.<span style="color:#a6e22e">getOutputStream</span>(), <span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>        BufferedReader in <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BufferedReader(
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">new</span> InputStreamReader(socket.<span style="color:#a6e22e">getInputStream</span>()));
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        out.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;Hello Secure Server!&#34;</span>);
+</span></span><span style="display:flex;"><span>        String response <span style="color:#f92672">=</span> in.<span style="color:#a6e22e">readLine</span>();
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;Server response: &#34;</span> <span style="color:#f92672">+</span> response);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        socket.<span style="color:#a6e22e">close</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="certificate-management">Certificate Management<a hidden class="anchor" aria-hidden="true" href="#certificate-management">#</a></h2>
+<h3 id="generating-self-signed-certificate">Generating Self-Signed Certificate<a hidden class="anchor" aria-hidden="true" href="#generating-self-signed-certificate">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Generate keystore with self-signed certificate</span>
+</span></span><span style="display:flex;"><span>keytool -genkeypair <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -alias server <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -keyalg RSA <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -keysize <span style="color:#ae81ff">2048</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -validity <span style="color:#ae81ff">365</span> <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -keystore server.jks <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -storepass password <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -keypass password <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -dname <span style="color:#e6db74">&#34;CN=localhost, OU=IT, O=MyCompany, L=City, ST=State, C=US&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Export certificate</span>
+</span></span><span style="display:flex;"><span>keytool -exportcert <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -alias server <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -keystore server.jks <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -file server.cer <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -storepass password
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Import to truststore</span>
+</span></span><span style="display:flex;"><span>keytool -importcert <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -alias server <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -file server.cer <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -keystore truststore.jks <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>  -storepass password
+</span></span></code></pre></div><h2 id="spring-boot-https-configuration">Spring Boot HTTPS Configuration<a hidden class="anchor" aria-hidden="true" href="#spring-boot-https-configuration">#</a></h2>
+<h3 id="applicationproperties">application.properties<a hidden class="anchor" aria-hidden="true" href="#applicationproperties">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-properties" data-lang="properties"><span style="display:flex;"><span><span style="color:#75715e"># HTTPS configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">server.port</span><span style="color:#f92672">=</span><span style="color:#e6db74">8443</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">server.ssl.enabled</span><span style="color:#f92672">=</span><span style="color:#e6db74">true</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">server.ssl.key-store</span><span style="color:#f92672">=</span><span style="color:#e6db74">classpath:keystore.jks</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">server.ssl.key-store-password</span><span style="color:#f92672">=</span><span style="color:#e6db74">password</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">server.ssl.key-store-type</span><span style="color:#f92672">=</span><span style="color:#e6db74">JKS</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">server.ssl.key-alias</span><span style="color:#f92672">=</span><span style="color:#e6db74">server</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># TLS version</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">server.ssl.enabled-protocols</span><span style="color:#f92672">=</span><span style="color:#e6db74">TLSv1.2,TLSv1.3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Cipher suites</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">server.ssl.ciphers</span><span style="color:#f92672">=</span><span style="color:#e6db74">TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</span>
+</span></span></code></pre></div><h3 id="programmatic-configuration">Programmatic Configuration<a hidden class="anchor" aria-hidden="true" href="#programmatic-configuration">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SSLConfig</span> {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> ServletWebServerFactory <span style="color:#a6e22e">servletContainer</span>() {
+</span></span><span style="display:flex;"><span>        TomcatServletWebServerFactory tomcat <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TomcatServletWebServerFactory() {
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">postProcessContext</span>(Context context) {
+</span></span><span style="display:flex;"><span>                SecurityConstraint securityConstraint <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SecurityConstraint();
+</span></span><span style="display:flex;"><span>                securityConstraint.<span style="color:#a6e22e">setUserConstraint</span>(<span style="color:#e6db74">&#34;CONFIDENTIAL&#34;</span>);
+</span></span><span style="display:flex;"><span>                SecurityCollection collection <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SecurityCollection();
+</span></span><span style="display:flex;"><span>                collection.<span style="color:#a6e22e">addPattern</span>(<span style="color:#e6db74">&#34;/*&#34;</span>);
+</span></span><span style="display:flex;"><span>                securityConstraint.<span style="color:#a6e22e">addCollection</span>(collection);
+</span></span><span style="display:flex;"><span>                context.<span style="color:#a6e22e">addConstraint</span>(securityConstraint);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        tomcat.<span style="color:#a6e22e">addAdditionalTomcatConnectors</span>(redirectConnector());
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> tomcat;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Connector <span style="color:#a6e22e">redirectConnector</span>() {
+</span></span><span style="display:flex;"><span>        Connector connector <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Connector(<span style="color:#e6db74">&#34;org.apache.coyote.http11.Http11NioProtocol&#34;</span>);
+</span></span><span style="display:flex;"><span>        connector.<span style="color:#a6e22e">setScheme</span>(<span style="color:#e6db74">&#34;http&#34;</span>);
+</span></span><span style="display:flex;"><span>        connector.<span style="color:#a6e22e">setPort</span>(8080);
+</span></span><span style="display:flex;"><span>        connector.<span style="color:#a6e22e">setSecure</span>(<span style="color:#66d9ef">false</span>);
+</span></span><span style="display:flex;"><span>        connector.<span style="color:#a6e22e">setRedirectPort</span>(8443);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> connector;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="http-client-with-ssl">HTTP Client with SSL<a hidden class="anchor" aria-hidden="true" href="#http-client-with-ssl">#</a></h2>
+<h3 id="resttemplate-with-ssl">RestTemplate with SSL<a hidden class="anchor" aria-hidden="true" href="#resttemplate-with-ssl">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">RestTemplateConfig</span> {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> RestTemplate <span style="color:#a6e22e">restTemplate</span>() <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        TrustStrategy acceptingTrustStrategy <span style="color:#f92672">=</span> (X509Certificate<span style="color:#f92672">[]</span> chain, String authType) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        SSLContext sslContext <span style="color:#f92672">=</span> SSLContexts.<span style="color:#a6e22e">custom</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">loadTrustMaterial</span>(<span style="color:#66d9ef">null</span>, acceptingTrustStrategy)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        SSLConnectionSocketFactory csf <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SSLConnectionSocketFactory(sslContext);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        CloseableHttpClient httpClient <span style="color:#f92672">=</span> HttpClients.<span style="color:#a6e22e">custom</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">setSSLSocketFactory</span>(csf)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        HttpComponentsClientHttpRequestFactory requestFactory <span style="color:#f92672">=</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">new</span> HttpComponentsClientHttpRequestFactory();
+</span></span><span style="display:flex;"><span>        requestFactory.<span style="color:#a6e22e">setHttpClient</span>(httpClient);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> RestTemplate(requestFactory);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="certificate-validation">Certificate Validation<a hidden class="anchor" aria-hidden="true" href="#certificate-validation">#</a></h2>
+<h3 id="custom-trust-manager">Custom Trust Manager<a hidden class="anchor" aria-hidden="true" href="#custom-trust-manager">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CustomTrustManager</span> <span style="color:#66d9ef">implements</span> X509TrustManager {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> X509TrustManager defaultTrustManager;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">CustomTrustManager</span>() <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        TrustManagerFactory tmf <span style="color:#f92672">=</span> TrustManagerFactory.<span style="color:#a6e22e">getInstance</span>(
+</span></span><span style="display:flex;"><span>            TrustManagerFactory.<span style="color:#a6e22e">getDefaultAlgorithm</span>());
+</span></span><span style="display:flex;"><span>        tmf.<span style="color:#a6e22e">init</span>((KeyStore) <span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (TrustManager tm : tmf.<span style="color:#a6e22e">getTrustManagers</span>()) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (tm <span style="color:#66d9ef">instanceof</span> X509TrustManager) {
+</span></span><span style="display:flex;"><span>                defaultTrustManager <span style="color:#f92672">=</span> (X509TrustManager) tm;
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span>;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> IllegalStateException(<span style="color:#e6db74">&#34;No X509TrustManager found&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">checkServerTrusted</span>(X509Certificate<span style="color:#f92672">[]</span> chain, String authType) 
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throws</span> CertificateException {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Custom validation logic</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (chain.<span style="color:#a6e22e">length</span> <span style="color:#f92672">==</span> 0) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> CertificateException(<span style="color:#e6db74">&#34;Certificate chain is empty&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Validate certificate dates</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (X509Certificate cert : chain) {
+</span></span><span style="display:flex;"><span>            cert.<span style="color:#a6e22e">checkValidity</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Delegate to default trust manager</span>
+</span></span><span style="display:flex;"><span>        defaultTrustManager.<span style="color:#a6e22e">checkServerTrusted</span>(chain, authType);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">checkClientTrusted</span>(X509Certificate<span style="color:#f92672">[]</span> chain, String authType) 
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throws</span> CertificateException {
+</span></span><span style="display:flex;"><span>        defaultTrustManager.<span style="color:#a6e22e">checkClientTrusted</span>(chain, authType);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> X509Certificate<span style="color:#f92672">[]</span> <span style="color:#a6e22e">getAcceptedIssuers</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> defaultTrustManager.<span style="color:#a6e22e">getAcceptedIssuers</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="security-best-practices">Security Best Practices<a hidden class="anchor" aria-hidden="true" href="#security-best-practices">#</a></h2>
+<ol>
+<li><strong>Use Strong Cipher Suites</strong>: Chỉ enable các cipher suites mạnh</li>
+<li><strong>Enable TLS 1.2+</strong>: Disable SSLv3, TLS 1.0, TLS 1.1</li>
+<li><strong>Validate Certificates</strong>: Luôn validate server certificates</li>
+<li><strong>Use Proper Key Sizes</strong>: RSA 2048 bits minimum</li>
+<li><strong>Certificate Pinning</strong>: Pin certificates trong mobile/desktop apps</li>
+<li><strong>Regular Updates</strong>: Update certificates trước khi expire</li>
+<li><strong>HSTS</strong>: Enable HTTP Strict Transport Security</li>
+<li><strong>Monitor Certificates</strong>: Theo dõi expiration dates</li>
+</ol>
+<h2 id="common-issues">Common Issues<a hidden class="anchor" aria-hidden="true" href="#common-issues">#</a></h2>
+<h3 id="certificate-errors">Certificate Errors<a hidden class="anchor" aria-hidden="true" href="#certificate-errors">#</a></h3>
+<ul>
+<li><strong>sun.security.validator.ValidatorException</strong>: Certificate chain không hợp lệ</li>
+<li><strong>javax.net.ssl.SSLHandshakeException</strong>: Handshake  failed</li>
+<li><strong>CertificateExpiredException</strong>: Certificate đã hết hạn</li>
+</ul>
+<h3 id="debugging-ssl-issues">Debugging SSL Issues<a hidden class="anchor" aria-hidden="true" href="#debugging-ssl-issues">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># Enable SSL debug logging</span>
+</span></span><span style="display:flex;"><span>-Djavax.net.debug<span style="color:#f92672">=</span>ssl,handshake
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Check certificate</span>
+</span></span><span style="display:flex;"><span>keytool -list -v -keystore keystore.jks
+</span></span></code></pre></div><h2 id="kết-luận">Kết luận<a hidden class="anchor" aria-hidden="true" href="#kết-luận">#</a></h2>
+<p>SSL/TLS là nền tảng bảo mật cho mọi ứng dụng web và network. Hiểu rõ cách implement và configure SSL/TLS trong Java sẽ giúp bạn xây dựng được các ứng dụng an toàn và đáng tin cậy.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="//localhost:1313/">Tien Phat&#39;s blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

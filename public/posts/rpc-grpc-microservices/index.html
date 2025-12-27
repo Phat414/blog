@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>RPC và gRPC trong Microservices | Tien Phat&#39;s blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="Tìm hiểu Remote Procedure Call và gRPC framework. Implement service-to-service communication trong kiến trúc microservices...">
+<meta name="author" content="map[email:dtphat414@gmail.com name:Đào Tiến Phát]">
+<link rel="canonical" href="//localhost:1313/posts/rpc-grpc-microservices/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.fd5566c526ae48aadabd950798a2dc3568536401560eae5caac3765a42a9e7b5.css" integrity="sha256-/VVmxSauSKravZUHmKLcNWhTZAFWDq5cqsN2WkKp57U=" rel="preload stylesheet" as="style">
+<link rel="icon" href="//localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="//localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="//localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="//localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="//localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="//localhost:1313/posts/rpc-grpc-microservices/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="//localhost:1313/" accesskey="h" title="Tien Phat&#39;s blog (Alt + H)">Tien Phat&#39;s blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="//localhost:1313/" title="Trang chủ">
+                    <span>Trang chủ</span>
+                </a>
+            </li>
+            <li>
+                <a href="//localhost:1313/about/" title="Về tôi">
+                    <span>Về tôi</span>
+                </a>
+            </li>
+            <li>
+                <a href="//localhost:1313/contact/" title="Liên hệ">
+                    <span>Liên hệ</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      RPC và gRPC trong Microservices
+    </h1>
+    <div class="post-description">
+      Tìm hiểu Remote Procedure Call và gRPC framework. Implement service-to-service communication trong kiến trúc microservices...
+    </div>
+    <div class="post-meta"><span title='2025-11-25 00:00:00 +0000 UTC'>November 25, 2025</span>&nbsp;·&nbsp;<span>map[email:dtphat414@gmail.com name:Đào Tiến Phát]</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>RPC (Remote Procedure Call) cho phép gọi hàm trên remote server như thể gọi hàm local. gRPC là RPC framework hiện đại từ Google, sử dụng HTTP/2 và Protocol Buffers.</p>
+<h2 id="rpc-concepts">RPC Concepts<a hidden class="anchor" aria-hidden="true" href="#rpc-concepts">#</a></h2>
+<h3 id="traditional-rpc-vs-rest">Traditional RPC vs REST<a hidden class="anchor" aria-hidden="true" href="#traditional-rpc-vs-rest">#</a></h3>
+<p><strong>RPC:</strong></p>
+<ul>
+<li>Gọi hàm remote như local function</li>
+<li>Strongly typed với code generation</li>
+<li>Binary protocols (hiệu quả hơn)</li>
+</ul>
+<p><strong>REST:</strong></p>
+<ul>
+<li>Resource-oriented</li>
+<li>HTTP methods (GET, POST, PUT, DELETE)</li>
+<li>Text-based (JSON, XML)</li>
+</ul>
+<h2 id="grpc-overview">gRPC Overview<a hidden class="anchor" aria-hidden="true" href="#grpc-overview">#</a></h2>
+<h3 id="key-features">Key Features<a hidden class="anchor" aria-hidden="true" href="#key-features">#</a></h3>
+<ul>
+<li><strong>HTTP/2</strong>: Multiplexing, server push, header compression</li>
+<li><strong>Protocol Buffers</strong>: Efficient binary serialization</li>
+<li><strong>Streaming</strong>: Client, server, và bidirectional streaming</li>
+<li><strong>Code Generation</strong>: Tự động generate client/server code</li>
+<li><strong>Multi-language</strong>: Support nhiều ngôn ngữ</li>
+</ul>
+<h2 id="protocol-buffers">Protocol Buffers<a hidden class="anchor" aria-hidden="true" href="#protocol-buffers">#</a></h2>
+<h3 id="defining-messages">Defining Messages<a hidden class="anchor" aria-hidden="true" href="#defining-messages">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-protobuf" data-lang="protobuf"><span style="display:flex;"><span>syntax <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;proto3&#34;</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#f92672">package</span> user;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">service</span> UserService {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">rpc</span> GetUser(GetUserRequest) <span style="color:#66d9ef">returns</span> (User);<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">rpc</span> ListUsers(ListUsersRequest) <span style="color:#66d9ef">returns</span> (stream User);<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">rpc</span> CreateUser(CreateUserRequest) <span style="color:#66d9ef">returns</span> (User);<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">rpc</span> UpdateUser(UpdateUserRequest) <span style="color:#66d9ef">returns</span> (User);<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">rpc</span> DeleteUser(DeleteUserRequest) <span style="color:#66d9ef">returns</span> (Empty);<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">User</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">int64</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> name <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> email <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">int32</span> age <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">GetUserRequest</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">int64</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">ListUsersRequest</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">int32</span> page <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">int32</span> page_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">CreateUserRequest</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> name <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> email <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">int32</span> age <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">UpdateUserRequest</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">int64</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> name <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> email <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">int32</span> age <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">DeleteUserRequest</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">int64</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">Empty</span> {}<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><h2 id="grpc-server-implementation">gRPC Server Implementation<a hidden class="anchor" aria-hidden="true" href="#grpc-server-implementation">#</a></h2>
+<h3 id="java-server">Java Server<a hidden class="anchor" aria-hidden="true" href="#java-server">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserServiceImpl</span> <span style="color:#66d9ef">extends</span> UserServiceGrpc.<span style="color:#a6e22e">UserServiceImplBase</span> {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">getUser</span>(GetUserRequest request, 
+</span></span><span style="display:flex;"><span>                       StreamObserver<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> responseObserver) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">long</span> userId <span style="color:#f92672">=</span> request.<span style="color:#a6e22e">getId</span>();
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Fetch user from database</span>
+</span></span><span style="display:flex;"><span>        User user <span style="color:#f92672">=</span> userRepository.<span style="color:#a6e22e">findById</span>(userId);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (user <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>            responseObserver.<span style="color:#a6e22e">onNext</span>(user);
+</span></span><span style="display:flex;"><span>            responseObserver.<span style="color:#a6e22e">onCompleted</span>();
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>            responseObserver.<span style="color:#a6e22e">onError</span>(
+</span></span><span style="display:flex;"><span>                Status.<span style="color:#a6e22e">NOT_FOUND</span>
+</span></span><span style="display:flex;"><span>                    .<span style="color:#a6e22e">withDescription</span>(<span style="color:#e6db74">&#34;User not found&#34;</span>)
+</span></span><span style="display:flex;"><span>                    .<span style="color:#a6e22e">asRuntimeException</span>()
+</span></span><span style="display:flex;"><span>            );
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">listUsers</span>(ListUsersRequest request,
+</span></span><span style="display:flex;"><span>                         StreamObserver<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> responseObserver) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> page <span style="color:#f92672">=</span> request.<span style="color:#a6e22e">getPage</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> pageSize <span style="color:#f92672">=</span> request.<span style="color:#a6e22e">getPageSize</span>();
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        List<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> users <span style="color:#f92672">=</span> userRepository.<span style="color:#a6e22e">findAll</span>(page, pageSize);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (User user : users) {
+</span></span><span style="display:flex;"><span>            responseObserver.<span style="color:#a6e22e">onNext</span>(user);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        responseObserver.<span style="color:#a6e22e">onCompleted</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">createUser</span>(CreateUserRequest request,
+</span></span><span style="display:flex;"><span>                          StreamObserver<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> responseObserver) {
+</span></span><span style="display:flex;"><span>        User user <span style="color:#f92672">=</span> User.<span style="color:#a6e22e">newBuilder</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">setName</span>(request.<span style="color:#a6e22e">getName</span>())
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">setEmail</span>(request.<span style="color:#a6e22e">getEmail</span>())
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">setAge</span>(request.<span style="color:#a6e22e">getAge</span>())
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        User created <span style="color:#f92672">=</span> userRepository.<span style="color:#a6e22e">save</span>(user);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        responseObserver.<span style="color:#a6e22e">onNext</span>(created);
+</span></span><span style="display:flex;"><span>        responseObserver.<span style="color:#a6e22e">onCompleted</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Start server</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">GrpcServer</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> IOException, InterruptedException {
+</span></span><span style="display:flex;"><span>        Server server <span style="color:#f92672">=</span> ServerBuilder.<span style="color:#a6e22e">forPort</span>(9090)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">addService</span>(<span style="color:#66d9ef">new</span> UserServiceImpl())
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">build</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;Server started on port 9090&#34;</span>);
+</span></span><span style="display:flex;"><span>        server.<span style="color:#a6e22e">awaitTermination</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="grpc-client">gRPC Client<a hidden class="anchor" aria-hidden="true" href="#grpc-client">#</a></h2>
+<h3 id="java-client">Java Client<a hidden class="anchor" aria-hidden="true" href="#java-client">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserServiceClient</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> UserServiceGrpc.<span style="color:#a6e22e">UserServiceBlockingStub</span> blockingStub;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> UserServiceGrpc.<span style="color:#a6e22e">UserServiceStub</span> asyncStub;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">UserServiceClient</span>(Channel channel) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">blockingStub</span> <span style="color:#f92672">=</span> UserServiceGrpc.<span style="color:#a6e22e">newBlockingStub</span>(channel);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">asyncStub</span> <span style="color:#f92672">=</span> UserServiceGrpc.<span style="color:#a6e22e">newStub</span>(channel);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> User <span style="color:#a6e22e">getUser</span>(<span style="color:#66d9ef">long</span> id) {
+</span></span><span style="display:flex;"><span>        GetUserRequest request <span style="color:#f92672">=</span> GetUserRequest.<span style="color:#a6e22e">newBuilder</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">setId</span>(id)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> blockingStub.<span style="color:#a6e22e">getUser</span>(request);
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (StatusRuntimeException e) {
+</span></span><span style="display:flex;"><span>            logger.<span style="color:#a6e22e">log</span>(Level.<span style="color:#a6e22e">WARNING</span>, <span style="color:#e6db74">&#34;RPC failed: {0}&#34;</span>, e.<span style="color:#a6e22e">getStatus</span>());
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">listUsers</span>(<span style="color:#66d9ef">int</span> page, <span style="color:#66d9ef">int</span> pageSize) {
+</span></span><span style="display:flex;"><span>        ListUsersRequest request <span style="color:#f92672">=</span> ListUsersRequest.<span style="color:#a6e22e">newBuilder</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">setPage</span>(page)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">setPageSize</span>(pageSize)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        Iterator<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> users <span style="color:#f92672">=</span> blockingStub.<span style="color:#a6e22e">listUsers</span>(request);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> (users.<span style="color:#a6e22e">hasNext</span>()) {
+</span></span><span style="display:flex;"><span>            User user <span style="color:#f92672">=</span> users.<span style="color:#a6e22e">next</span>();
+</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;User: &#34;</span> <span style="color:#f92672">+</span> user.<span style="color:#a6e22e">getName</span>());
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) {
+</span></span><span style="display:flex;"><span>        ManagedChannel channel <span style="color:#f92672">=</span> ManagedChannelBuilder
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">forAddress</span>(<span style="color:#e6db74">&#34;localhost&#34;</span>, 9090)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">usePlaintext</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        UserServiceClient client <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> UserServiceClient(channel);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        User user <span style="color:#f92672">=</span> client.<span style="color:#a6e22e">getUser</span>(1);
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;Found user: &#34;</span> <span style="color:#f92672">+</span> user);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>channel.<span style="color:#a6e22e">shutdown</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="streaming-rpcs">Streaming RPCs<a hidden class="anchor" aria-hidden="true" href="#streaming-rpcs">#</a></h2>
+<h3 id="server-streaming">Server Streaming<a hidden class="anchor" aria-hidden="true" href="#server-streaming">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">streamUsers</span>(StreamRequest request,
+</span></span><span style="display:flex;"><span>                       StreamObserver<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> responseObserver) {
+</span></span><span style="display:flex;"><span>    userRepository.<span style="color:#a6e22e">findAll</span>().<span style="color:#a6e22e">forEach</span>(user <span style="color:#f92672">-&gt;</span> {
+</span></span><span style="display:flex;"><span>        responseObserver.<span style="color:#a6e22e">onNext</span>(user);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            Thread.<span style="color:#a6e22e">sleep</span>(100); <span style="color:#75715e">// Simulate delay</span>
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (InterruptedException e) {
+</span></span><span style="display:flex;"><span>            Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">interrupt</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    });
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    responseObserver.<span style="color:#a6e22e">onCompleted</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="client-streaming">Client Streaming<a hidden class="anchor" aria-hidden="true" href="#client-streaming">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> StreamObserver<span style="color:#f92672">&lt;</span>CreateUserRequest<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">batchCreateUsers</span>(
+</span></span><span style="display:flex;"><span>        StreamObserver<span style="color:#f92672">&lt;</span>BatchCreateResponse<span style="color:#f92672">&gt;</span> responseObserver) {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> StreamObserver<span style="color:#f92672">&lt;</span>CreateUserRequest<span style="color:#f92672">&gt;</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> count <span style="color:#f92672">=</span> 0;
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onNext</span>(CreateUserRequest request) {
+</span></span><span style="display:flex;"><span>            User user <span style="color:#f92672">=</span> createUser(request);
+</span></span><span style="display:flex;"><span>            count<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onError</span>(Throwable t) {
+</span></span><span style="display:flex;"><span>            logger.<span style="color:#a6e22e">log</span>(Level.<span style="color:#a6e22e">WARNING</span>, <span style="color:#e6db74">&#34;Error: {0}&#34;</span>, t);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCompleted</span>() {
+</span></span><span style="display:flex;"><span>            BatchCreateResponse response <span style="color:#f92672">=</span> BatchCreateResponse.<span style="color:#a6e22e">newBuilder</span>()
+</span></span><span style="display:flex;"><span>                .<span style="color:#a6e22e">setCount</span>(count)
+</span></span><span style="display:flex;"><span>                .<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            responseObserver.<span style="color:#a6e22e">onNext</span>(response);
+</span></span><span style="display:flex;"><span>            responseObserver.<span style="color:#a6e22e">onCompleted</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    };
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="bidirectional-streaming">Bidirectional Streaming<a hidden class="anchor" aria-hidden="true" href="#bidirectional-streaming">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> StreamObserver<span style="color:#f92672">&lt;</span>ChatMessage<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">chat</span>(
+</span></span><span style="display:flex;"><span>        StreamObserver<span style="color:#f92672">&lt;</span>ChatMessage<span style="color:#f92672">&gt;</span> responseObserver) {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> StreamObserver<span style="color:#f92672">&lt;</span>ChatMessage<span style="color:#f92672">&gt;</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onNext</span>(ChatMessage message) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// Broadcast to all connected clients</span>
+</span></span><span style="display:flex;"><span>            broadcastMessage(message, responseObserver);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onError</span>(Throwable t) {
+</span></span><span style="display:flex;"><span>            logger.<span style="color:#a6e22e">log</span>(Level.<span style="color:#a6e22e">WARNING</span>, <span style="color:#e6db74">&#34;Chat error: {0}&#34;</span>, t);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCompleted</span>() {
+</span></span><span style="display:flex;"><span>            responseObserver.<span style="color:#a6e22e">onCompleted</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    };
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="error-handling">Error Handling<a hidden class="anchor" aria-hidden="true" href="#error-handling">#</a></h2>
+<h3 id="grpc-status-codes">gRPC Status Codes<a hidden class="anchor" aria-hidden="true" href="#grpc-status-codes">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ErrorHandler</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> StatusRuntimeException <span style="color:#a6e22e">notFound</span>(String message) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> Status.<span style="color:#a6e22e">NOT_FOUND</span>
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">withDescription</span>(message)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">asRuntimeException</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> StatusRuntimeException <span style="color:#a6e22e">invalidArgument</span>(String message) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> Status.<span style="color:#a6e22e">INVALID_ARGUMENT</span>
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">withDescription</span>(message)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">asRuntimeException</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> StatusRuntimeException <span style="color:#a6e22e">internal</span>(String message) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> Status.<span style="color:#a6e22e">INTERNAL</span>
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">withDescription</span>(message)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">asRuntimeException</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Usage</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (user <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">throw</span> ErrorHandler.<span style="color:#a6e22e">notFound</span>(<span style="color:#e6db74">&#34;User not found&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="interceptors">Interceptors<a hidden class="anchor" aria-hidden="true" href="#interceptors">#</a></h2>
+<h3 id="server-interceptor">Server Interceptor<a hidden class="anchor" aria-hidden="true" href="#server-interceptor">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LoggingInterceptor</span> <span style="color:#66d9ef">implements</span> ServerInterceptor {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#f92672">&lt;</span>ReqT, RespT<span style="color:#f92672">&gt;</span> ServerCall.<span style="color:#a6e22e">Listener</span><span style="color:#f92672">&lt;</span>ReqT<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">interceptCall</span>(
+</span></span><span style="display:flex;"><span>            ServerCall<span style="color:#f92672">&lt;</span>ReqT, RespT<span style="color:#f92672">&gt;</span> call,
+</span></span><span style="display:flex;"><span>            Metadata headers,
+</span></span><span style="display:flex;"><span>            ServerCallHandler<span style="color:#f92672">&lt;</span>ReqT, RespT<span style="color:#f92672">&gt;</span> next) {
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        logger.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;Method: &#34;</span> <span style="color:#f92672">+</span> call.<span style="color:#a6e22e">getMethodDescriptor</span>().<span style="color:#a6e22e">getFullMethodName</span>());
+</span></span><span style="display:flex;"><span>        logger.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;Headers: &#34;</span> <span style="color:#f92672">+</span> headers);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> next.<span style="color:#a6e22e">startCall</span>(call, headers);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Add to server</span>
+</span></span><span style="display:flex;"><span>Server server <span style="color:#f92672">=</span> ServerBuilder.<span style="color:#a6e22e">forPort</span>(9090)
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">addService</span>(<span style="color:#66d9ef">new</span> UserServiceImpl())
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">intercept</span>(<span style="color:#66d9ef">new</span> LoggingInterceptor())
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">build</span>();
+</span></span></code></pre></div><h3 id="client-interceptor">Client Interceptor<a hidden class="anchor" aria-hidden="true" href="#client-interceptor">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AuthInterceptor</span> <span style="color:#66d9ef">implements</span> ClientInterceptor {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> String token;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#f92672">&lt;</span>ReqT, RespT<span style="color:#f92672">&gt;</span> ClientCall<span style="color:#f92672">&lt;</span>ReqT, RespT<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">interceptCall</span>(
+</span></span><span style="display:flex;"><span>            MethodDescriptor<span style="color:#f92672">&lt;</span>ReqT, RespT<span style="color:#f92672">&gt;</span> method,
+</span></span><span style="display:flex;"><span>            CallOptions callOptions,
+</span></span><span style="display:flex;"><span>            Channel next) {
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> ForwardingClientCall.<span style="color:#a6e22e">SimpleForwardingClientCall</span><span style="color:#f92672">&lt;</span>ReqT, RespT<span style="color:#f92672">&gt;</span>(
+</span></span><span style="display:flex;"><span>                next.<span style="color:#a6e22e">newCall</span>(method, callOptions)) {
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">start</span>(Listener<span style="color:#f92672">&lt;</span>RespT<span style="color:#f92672">&gt;</span> responseListener, Metadata headers) {
+</span></span><span style="display:flex;"><span>                headers.<span style="color:#a6e22e">put</span>(Metadata.<span style="color:#a6e22e">Key</span>.<span style="color:#a6e22e">of</span>(<span style="color:#e6db74">&#34;authorization&#34;</span>, ASCII_STRING_MARSHALLER),
+</span></span><span style="display:flex;"><span>                           <span style="color:#e6db74">&#34;Bearer &#34;</span> <span style="color:#f92672">+</span> token);
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">start</span>(responseListener, headers);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="load-balancing">Load Balancing<a hidden class="anchor" aria-hidden="true" href="#load-balancing">#</a></h2>
+<h3 id="client-side-load-balancing">Client-Side Load Balancing<a hidden class="anchor" aria-hidden="true" href="#client-side-load-balancing">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>ManagedChannel channel <span style="color:#f92672">=</span> ManagedChannelBuilder
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">forTarget</span>(<span style="color:#e6db74">&#34;dns:///my-service:9090&#34;</span>)
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">defaultLoadBalancingPolicy</span>(<span style="color:#e6db74">&#34;round_robin&#34;</span>)
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">usePlaintext</span>()
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">build</span>();
+</span></span></code></pre></div><h2 id="security">Security<a hidden class="anchor" aria-hidden="true" href="#security">#</a></h2>
+<h3 id="tlsssl">TLS/SSL<a hidden class="anchor" aria-hidden="true" href="#tlsssl">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">// Server with TLS</span>
+</span></span><span style="display:flex;"><span>Server server <span style="color:#f92672">=</span> NettyServerBuilder.<span style="color:#a6e22e">forPort</span>(9090)
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">addService</span>(<span style="color:#66d9ef">new</span> UserServiceImpl())
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">useTransportSecurity</span>(certChainFile, privateKeyFile)
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Client with TLS</span>
+</span></span><span style="display:flex;"><span>ManagedChannel channel <span style="color:#f92672">=</span> NettyChannelBuilder
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">forAddress</span>(<span style="color:#e6db74">&#34;localhost&#34;</span>, 9090)
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">sslContext</span>(GrpcSslContexts.<span style="color:#a6e22e">forClient</span>()
+</span></span><span style="display:flex;"><span>        .<span style="color:#a6e22e">trustManager</span>(trustCertCollectionFile)
+</span></span><span style="display:flex;"><span>        .<span style="color:#a6e22e">build</span>())
+</span></span><span style="display:flex;"><span>    .<span style="color:#a6e22e">build</span>();
+</span></span></code></pre></div><h2 id="spring-boot-integration">Spring Boot Integration<a hidden class="anchor" aria-hidden="true" href="#spring-boot-integration">#</a></h2>
+<h3 id="grpc-server-with-spring-boot">gRPC Server with Spring Boot<a hidden class="anchor" aria-hidden="true" href="#grpc-server-with-spring-boot">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@GrpcService</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserGrpcService</span> <span style="color:#66d9ef">extends</span> UserServiceGrpc.<span style="color:#a6e22e">UserServiceImplBase</span> {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> UserRepository userRepository;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">getUser</span>(GetUserRequest request,
+</span></span><span style="display:flex;"><span>                       StreamObserver<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> responseObserver) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Implementation</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// application.yml</span>
+</span></span><span style="display:flex;"><span>grpc:
+</span></span><span style="display:flex;"><span>  server:
+</span></span><span style="display:flex;"><span>    port: 9090
+</span></span></code></pre></div><h2 id="best-practices">Best Practices<a hidden class="anchor" aria-hidden="true" href="#best-practices">#</a></h2>
+<ol>
+<li><strong>Use Protocol Buffers</strong>: Efficient serialization</li>
+<li><strong>Implement Timeouts</strong>: Prevent hanging calls</li>
+<li><strong>Handle Errors Properly</strong>: Use appropriate status codes</li>
+<li><strong>Enable Compression</strong>: Reduce network usage</li>
+<li><strong>Use Interceptors</strong>: Logging, authentication, metrics</li>
+<li><strong>Connection Pooling</strong>: Reuse connections</li>
+<li><strong>Health Checks</strong>: Monitor service health</li>
+<li><strong>Versioning</strong>: Plan for API evolution</li>
+<li><strong>Load Balancing</strong>: Distribute load across instances</li>
+<li><strong>TLS</strong>: Encrypt communication in production</li>
+</ol>
+<h2 id="kết-luận">Kết luận<a hidden class="anchor" aria-hidden="true" href="#kết-luận">#</a></h2>
+<p>gRPC là framework mạnh mẽ cho service-to-service communication trong microservices. Với HTTP/2, Protocol Buffers, và streaming support, gRPC cung cấp hiệu suất và tính năng vượt trội so với REST cho internal APIs.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="//localhost:1313/">Tien Phat&#39;s blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

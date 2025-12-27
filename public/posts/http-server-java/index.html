@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Xây dựng HTTP Server đơn giản bằng Java | Tien Phat&#39;s blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="Hướng dẫn chi tiết cách tạo một HTTP server từ đầu sử dụng Java Socket API, xử lý request và response...">
+<meta name="author" content="map[email:dtphat414@gmail.com name:Đào Tiến Phát]">
+<link rel="canonical" href="//localhost:1313/posts/http-server-java/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.fd5566c526ae48aadabd950798a2dc3568536401560eae5caac3765a42a9e7b5.css" integrity="sha256-/VVmxSauSKravZUHmKLcNWhTZAFWDq5cqsN2WkKp57U=" rel="preload stylesheet" as="style">
+<link rel="icon" href="//localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="//localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="//localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="//localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="//localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="//localhost:1313/posts/http-server-java/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="//localhost:1313/" accesskey="h" title="Tien Phat&#39;s blog (Alt + H)">Tien Phat&#39;s blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="//localhost:1313/" title="Trang chủ">
+                    <span>Trang chủ</span>
+                </a>
+            </li>
+            <li>
+                <a href="//localhost:1313/about/" title="Về tôi">
+                    <span>Về tôi</span>
+                </a>
+            </li>
+            <li>
+                <a href="//localhost:1313/contact/" title="Liên hệ">
+                    <span>Liên hệ</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Xây dựng HTTP Server đơn giản bằng Java
+    </h1>
+    <div class="post-description">
+      Hướng dẫn chi tiết cách tạo một HTTP server từ đầu sử dụng Java Socket API, xử lý request và response...
+    </div>
+    <div class="post-meta"><span title='2025-12-18 00:00:00 +0000 UTC'>December 18, 2025</span>&nbsp;·&nbsp;<span>map[email:dtphat414@gmail.com name:Đào Tiến Phát]</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>HTTP là giao thức nền tảng của World Wide Web. Trong bài viết này, chúng ta sẽ tìm hiểu cách xây dựng một HTTP server đơn giản từ đầu sử dụng Java Socket API.</p>
+<h2 id="http-protocol-basics">HTTP Protocol Basics<a hidden class="anchor" aria-hidden="true" href="#http-protocol-basics">#</a></h2>
+<p>HTTP (Hypertext Transfer Protocol) là giao thức client-server hoạt động theo mô hình request-response. Client gửi HTTP request đến server, server xử lý và trả về HTTP response.</p>
+<h3 id="http-request-format">HTTP Request Format<a hidden class="anchor" aria-hidden="true" href="#http-request-format">#</a></h3>
+<p>Một HTTP request bao gồm:</p>
+<ul>
+<li>Request line: Method (GET, POST,&hellip;) + Path + HTTP Version</li>
+<li>Headers: Thông tin bổ sung (Host, User-Agent, Content-Type,&hellip;)</li>
+<li>Body: Dữ liệu gửi lên (chỉ với POST, PUT,&hellip;)</li>
+</ul>
+<h2 id="tạo-http-server-cơ-bản">Tạo HTTP Server cơ bản<a hidden class="anchor" aria-hidden="true" href="#tạo-http-server-cơ-bản">#</a></h2>
+<p>Chúng ta sẽ sử dụng ServerSocket để lắng nghe kết nối và xử lý HTTP requests.</p>
+<h3 id="simple-http-server">Simple HTTP Server<a hidden class="anchor" aria-hidden="true" href="#simple-http-server">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SimpleHttpServer</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> PORT <span style="color:#f92672">=</span> 8080;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex;"><span>        ServerSocket serverSocket <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ServerSocket(PORT);
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;Server started on port &#34;</span> <span style="color:#f92672">+</span> PORT);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> (<span style="color:#66d9ef">true</span>) {
+</span></span><span style="display:flex;"><span>            Socket clientSocket <span style="color:#f92672">=</span> serverSocket.<span style="color:#a6e22e">accept</span>();
+</span></span><span style="display:flex;"><span>            handleClient(clientSocket);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">handleClient</span>(Socket socket) <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex;"><span>        BufferedReader in <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BufferedReader(
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">new</span> InputStreamReader(socket.<span style="color:#a6e22e">getInputStream</span>()));
+</span></span><span style="display:flex;"><span>        PrintWriter out <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> PrintWriter(socket.<span style="color:#a6e22e">getOutputStream</span>());
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Đọc request line</span>
+</span></span><span style="display:flex;"><span>        String requestLine <span style="color:#f92672">=</span> in.<span style="color:#a6e22e">readLine</span>();
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;Request: &#34;</span> <span style="color:#f92672">+</span> requestLine);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Đọc headers</span>
+</span></span><span style="display:flex;"><span>        String line;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> ((line <span style="color:#f92672">=</span> in.<span style="color:#a6e22e">readLine</span>()) <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span>line.<span style="color:#a6e22e">isEmpty</span>()) {
+</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;Header: &#34;</span> <span style="color:#f92672">+</span> line);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Gửi HTTP response</span>
+</span></span><span style="display:flex;"><span>        String response <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;HTTP/1.1 200 OK\r\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                         <span style="color:#e6db74">&#34;Content-Type: text/html\r\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                         <span style="color:#e6db74">&#34;\r\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                         <span style="color:#e6db74">&#34;&lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;&#34;</span>;
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        out.<span style="color:#a6e22e">print</span>(response);
+</span></span><span style="display:flex;"><span>        out.<span style="color:#a6e22e">flush</span>();
+</span></span><span style="display:flex;"><span>        socket.<span style="color:#a6e22e">close</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="xử-lý-các-http-methods">Xử lý các HTTP Methods<a hidden class="anchor" aria-hidden="true" href="#xử-lý-các-http-methods">#</a></h2>
+<p>Để xử lý nhiều loại request khác nhau, chúng ta cần parse request line và xử lý theo method.</p>
+<h3 id="request-parser">Request Parser<a hidden class="anchor" aria-hidden="true" href="#request-parser">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">handleRequest</span>(Socket socket) <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex;"><span>    BufferedReader in <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BufferedReader(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> InputStreamReader(socket.<span style="color:#a6e22e">getInputStream</span>()));
+</span></span><span style="display:flex;"><span>    PrintWriter out <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> PrintWriter(socket.<span style="color:#a6e22e">getOutputStream</span>());
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Parse request line: GET /path HTTP/1.1</span>
+</span></span><span style="display:flex;"><span>    String requestLine <span style="color:#f92672">=</span> in.<span style="color:#a6e22e">readLine</span>();
+</span></span><span style="display:flex;"><span>    String<span style="color:#f92672">[]</span> parts <span style="color:#f92672">=</span> requestLine.<span style="color:#a6e22e">split</span>(<span style="color:#e6db74">&#34; &#34;</span>);
+</span></span><span style="display:flex;"><span>    String method <span style="color:#f92672">=</span> parts<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span>    String path <span style="color:#f92672">=</span> parts<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Xử lý theo method</span>
+</span></span><span style="display:flex;"><span>    String response;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (method.<span style="color:#a6e22e">equals</span>(<span style="color:#e6db74">&#34;GET&#34;</span>)) {
+</span></span><span style="display:flex;"><span>        response <span style="color:#f92672">=</span> handleGet(path);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (method.<span style="color:#a6e22e">equals</span>(<span style="color:#e6db74">&#34;POST&#34;</span>)) {
+</span></span><span style="display:flex;"><span>        response <span style="color:#f92672">=</span> handlePost(path);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        response <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;HTTP/1.1 405 Method Not Allowed\r\n\r\n&#34;</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    out.<span style="color:#a6e22e">print</span>(response);
+</span></span><span style="display:flex;"><span>    out.<span style="color:#a6e22e">flush</span>();
+</span></span><span style="display:flex;"><span>    socket.<span style="color:#a6e22e">close</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="multi-threaded-server">Multi-threaded Server<a hidden class="anchor" aria-hidden="true" href="#multi-threaded-server">#</a></h2>
+<p>Để xử lý nhiều client đồng thời, chúng ta sử dụng thread pool:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>ExecutorService threadPool <span style="color:#f92672">=</span> Executors.<span style="color:#a6e22e">newFixedThreadPool</span>(10);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> (<span style="color:#66d9ef">true</span>) {
+</span></span><span style="display:flex;"><span>    Socket clientSocket <span style="color:#f92672">=</span> serverSocket.<span style="color:#a6e22e">accept</span>();
+</span></span><span style="display:flex;"><span>    threadPool.<span style="color:#a6e22e">execute</span>(() <span style="color:#f92672">-&gt;</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            handleClient(clientSocket);
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (IOException e) {
+</span></span><span style="display:flex;"><span>            e.<span style="color:#a6e22e">printStackTrace</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    });
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="serving-static-files">Serving Static Files<a hidden class="anchor" aria-hidden="true" href="#serving-static-files">#</a></h2>
+<p>Để serve file HTML, CSS, JS từ thư mục:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">serveFile</span>(String path) <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex;"><span>    File file <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> File(<span style="color:#e6db74">&#34;public&#34;</span> <span style="color:#f92672">+</span> path);
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>file.<span style="color:#a6e22e">exists</span>()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;HTTP/1.1 404 Not Found\r\n\r\nFile not found&#34;</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    String contentType <span style="color:#f92672">=</span> getContentType(path);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> content <span style="color:#f92672">=</span> Files.<span style="color:#a6e22e">readAllBytes</span>(file.<span style="color:#a6e22e">toPath</span>());
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;HTTP/1.1 200 OK\r\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>           <span style="color:#e6db74">&#34;Content-Type: &#34;</span> <span style="color:#f92672">+</span> contentType <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;\r\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>           <span style="color:#e6db74">&#34;Content-Length: &#34;</span> <span style="color:#f92672">+</span> content.<span style="color:#a6e22e">length</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;\r\n\r\n&#34;</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">getContentType</span>(String path) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (path.<span style="color:#a6e22e">endsWith</span>(<span style="color:#e6db74">&#34;.html&#34;</span>)) <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;text/html&#34;</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (path.<span style="color:#a6e22e">endsWith</span>(<span style="color:#e6db74">&#34;.css&#34;</span>)) <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;text/css&#34;</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (path.<span style="color:#a6e22e">endsWith</span>(<span style="color:#e6db74">&#34;.js&#34;</span>)) <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;application/javascript&#34;</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;text/plain&#34;</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="kết-luận">Kết luận<a hidden class="anchor" aria-hidden="true" href="#kết-luận">#</a></h2>
+<p>Việc xây dựng HTTP server từ socket giúp bạn hiểu sâu về cách HTTP hoạt động. Tuy nhiên, trong thực tế, bạn nên sử dụng các framework như Spring Boot, Jetty, hoặc Tomcat cho production.</p>
+<h3 id="tính-năng-mở-rộng">Tính năng mở rộng<a hidden class="anchor" aria-hidden="true" href="#tính-năng-mở-rộng">#</a></h3>
+<ul>
+<li>Routing phức tạp với regex patterns</li>
+<li>Session management với cookies</li>
+<li>HTTPS support với SSL/TLS</li>
+<li>Compression (gzip) cho responses</li>
+<li>Caching và conditional requests</li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="//localhost:1313/">Tien Phat&#39;s blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Tien Phat&#39;s blog</title>
+    <link>//localhost:1313/</link>
+    <description>Recent content on Tien Phat&#39;s blog</description>
+    <generator>Hugo -- 0.152.2</generator>
+    <language>vi</language>
+    <managingEditor>dtphat414@gmail.com (Đào Tiến Phát)</managingEditor>
+    <webMaster>dtphat414@gmail.com (Đào Tiến Phát)</webMaster>
+    <lastBuildDate>Sat, 20 Dec 2025 00:00:00 +0000</lastBuildDate>
+    <atom:link href="//localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Socket Programming với Java</title>
+      <link>//localhost:1313/posts/socket-programming-java/</link>
+      <pubDate>Sat, 20 Dec 2025 00:00:00 +0000</pubDate><author>dtphat414@gmail.com (Đào Tiến Phát)</author>
+      <guid>//localhost:1313/posts/socket-programming-java/</guid>
+      <description>Tìm hiểu cách sử dụng Socket API trong Java để xây dựng ứng dụng client-server. Từ TCP socket đến UDP socket...</description>
+    </item>
+    <item>
+      <title>Xây dựng HTTP Server đơn giản bằng Java</title>
+      <link>//localhost:1313/posts/http-server-java/</link>
+      <pubDate>Thu, 18 Dec 2025 00:00:00 +0000</pubDate><author>dtphat414@gmail.com (Đào Tiến Phát)</author>
+      <guid>//localhost:1313/posts/http-server-java/</guid>
+      <description>Hướng dẫn chi tiết cách tạo một HTTP server từ đầu sử dụng Java Socket API, xử lý request và response...</description>
+    </item>
+    <item>
+      <title>WebSocket API trong JavaScript</title>
+      <link>//localhost:1313/posts/websocket-javascript/</link>
+      <pubDate>Mon, 15 Dec 2025 00:00:00 +0000</pubDate><author>dtphat414@gmail.com (Đào Tiến Phát)</author>
+      <guid>//localhost:1313/posts/websocket-javascript/</guid>
+      <description>Khám phá WebSocket để tạo kết nối real-time giữa client và server. Ví dụ thực tế về chat application...</description>
+    </item>
+    <item>
+      <title>Thiết kế RESTful API với Java Spring Boot</title>
+      <link>//localhost:1313/posts/restful-api-spring/</link>
+      <pubDate>Fri, 12 Dec 2025 00:00:00 +0000</pubDate><author>dtphat414@gmail.com (Đào Tiến Phát)</author>
+      <guid>//localhost:1313/posts/restful-api-spring/</guid>
+      <description>Best practices khi xây dựng RESTful API. Từ HTTP methods, status codes đến authentication và error handling...</description>
+    </item>
+    <item>
+      <title>Fetch API và Async/Await trong JavaScript</title>
+      <link>//localhost:1313/posts/fetch-async-await/</link>
+      <pubDate>Mon, 08 Dec 2025 00:00:00 +0000</pubDate><author>dtphat414@gmail.com (Đào Tiến Phát)</author>
+      <guid>//localhost:1313/posts/fetch-async-await/</guid>
+      <description>Làm chủ lập trình bất đồng bộ với Fetch API, Promises và async/await để giao tiếp với REST API hiệu quả...</description>
+    </item>
+    <item>
+      <title>SSL/TLS và HTTPS trong Java</title>
+      <link>//localhost:1313/posts/ssl-tls-https/</link>
+      <pubDate>Fri, 05 Dec 2025 00:00:00 +0000</pubDate><author>dtphat414@gmail.com (Đào Tiến Phát)</author>
+      <guid>//localhost:1313/posts/ssl-tls-https/</guid>
+      <description>Tìm hiểu cách implement SSL/TLS cho ứng dụng Java. Bảo mật kết nối mạng với certificates và encryption...</description>
+    </item>
+    <item>
+      <title>Xây dựng TCP Server với Node.js</title>
+      <link>//localhost:1313/posts/tcp-server-nodejs/</link>
+      <pubDate>Mon, 01 Dec 2025 00:00:00 +0000</pubDate><author>dtphat414@gmail.com (Đào Tiến Phát)</author>
+      <guid>//localhost:1313/posts/tcp-server-nodejs/</guid>
+      <description>Sử dụng Net module trong Node.js để tạo TCP server. Handle multiple clients, streaming data và error handling...</description>
+    </item>
+    <item>
+      <title>Thiết kế Custom Network Protocol</title>
+      <link>//localhost:1313/posts/custom-network-protocol/</link>
+      <pubDate>Fri, 28 Nov 2025 00:00:00 +0000</pubDate><author>dtphat414@gmail.com (Đào Tiến Phát)</author>
+      <guid>//localhost:1313/posts/custom-network-protocol/</guid>
+      <description>Cách thiết kế protocol riêng cho ứng dụng của bạn. Message format, serialization và protocol versioning...</description>
+    </item>
+    <item>
+      <title>RPC và gRPC trong Microservices</title>
+      <link>//localhost:1313/posts/rpc-grpc-microservices/</link>
+      <pubDate>Tue, 25 Nov 2025 00:00:00 +0000</pubDate><author>dtphat414@gmail.com (Đào Tiến Phát)</author>
+      <guid>//localhost:1313/posts/rpc-grpc-microservices/</guid>
+      <description>Tìm hiểu Remote Procedure Call và gRPC framework. Implement service-to-service communication trong kiến trúc microservices...</description>
+    </item>
+    <item>
+      <title>Liên hệ</title>
+      <link>//localhost:1313/contact/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>dtphat414@gmail.com (Đào Tiến Phát)</author>
+      <guid>//localhost:1313/contact/</guid>
+      <description>Liên hệ với Tiến Phát - Kết nối và giao lưu</description>
+    </item>
+    <item>
+      <title>Về tôi</title>
+      <link>//localhost:1313/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><author>dtphat414@gmail.com (Đào Tiến Phát)</author>
+      <guid>//localhost:1313/about/</guid>
+      <description>Về Tiến Phát - Lập trình viên đam mê công nghệ</description>
+    </item>
+  </channel>
+</rss>

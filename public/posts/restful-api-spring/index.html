@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Thiết kế RESTful API với Java Spring Boot | Tien Phat&#39;s blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="Best practices khi xây dựng RESTful API. Từ HTTP methods, status codes đến authentication và error handling...">
+<meta name="author" content="map[email:dtphat414@gmail.com name:Đào Tiến Phát]">
+<link rel="canonical" href="//localhost:1313/posts/restful-api-spring/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.fd5566c526ae48aadabd950798a2dc3568536401560eae5caac3765a42a9e7b5.css" integrity="sha256-/VVmxSauSKravZUHmKLcNWhTZAFWDq5cqsN2WkKp57U=" rel="preload stylesheet" as="style">
+<link rel="icon" href="//localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="//localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="//localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="//localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="//localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="//localhost:1313/posts/restful-api-spring/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="//localhost:1313/" accesskey="h" title="Tien Phat&#39;s blog (Alt + H)">Tien Phat&#39;s blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="//localhost:1313/" title="Trang chủ">
+                    <span>Trang chủ</span>
+                </a>
+            </li>
+            <li>
+                <a href="//localhost:1313/about/" title="Về tôi">
+                    <span>Về tôi</span>
+                </a>
+            </li>
+            <li>
+                <a href="//localhost:1313/contact/" title="Liên hệ">
+                    <span>Liên hệ</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Thiết kế RESTful API với Java Spring Boot
+    </h1>
+    <div class="post-description">
+      Best practices khi xây dựng RESTful API. Từ HTTP methods, status codes đến authentication và error handling...
+    </div>
+    <div class="post-meta"><span title='2025-12-12 00:00:00 +0000 UTC'>December 12, 2025</span>&nbsp;·&nbsp;<span>map[email:dtphat414@gmail.com name:Đào Tiến Phát]</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>RESTful API là kiến trúc phổ biến nhất để xây dựng web services. Trong bài viết này, chúng ta sẽ tìm hiểu cách thiết kế và implement RESTful API với Java Spring Boot.</p>
+<h2 id="rest-principles">REST Principles<a hidden class="anchor" aria-hidden="true" href="#rest-principles">#</a></h2>
+<p>REST (Representational State Transfer) dựa trên các nguyên tắc:</p>
+<ul>
+<li><strong>Stateless</strong>: Mỗi request độc lập, không lưu trạng thái</li>
+<li><strong>Client-Server</strong>: Tách biệt client và server</li>
+<li><strong>Cacheable</strong>: Response có thể được cache</li>
+<li><strong>Uniform Interface</strong>: Interface nhất quán</li>
+<li><strong>Layered System</strong>: Hệ thống theo layer</li>
+</ul>
+<h2 id="http-methods">HTTP Methods<a hidden class="anchor" aria-hidden="true" href="#http-methods">#</a></h2>
+<h3 id="crud-operations">CRUD Operations<a hidden class="anchor" aria-hidden="true" href="#crud-operations">#</a></h3>
+<ul>
+<li><strong>GET</strong>: Lấy dữ liệu (Read)</li>
+<li><strong>POST</strong>: Tạo mới (Create)</li>
+<li><strong>PUT</strong>: Cập nhật toàn bộ (Update)</li>
+<li><strong>PATCH</strong>: Cập nhật một phần (Partial Update)</li>
+<li><strong>DELETE</strong>: Xóa (Delete)</li>
+</ul>
+<h2 id="spring-boot-rest-controller">Spring Boot REST Controller<a hidden class="anchor" aria-hidden="true" href="#spring-boot-rest-controller">#</a></h2>
+<h3 id="basic-controller">Basic Controller<a hidden class="anchor" aria-hidden="true" href="#basic-controller">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@RestController</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@RequestMapping</span>(<span style="color:#e6db74">&#34;/api/users&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserController</span> {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> UserService userService;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@GetMapping</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> List<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">getAllUsers</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> userService.<span style="color:#a6e22e">findAll</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@GetMapping</span>(<span style="color:#e6db74">&#34;/{id}&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> ResponseEntity<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">getUserById</span>(<span style="color:#a6e22e">@PathVariable</span> Long id) {
+</span></span><span style="display:flex;"><span>        User user <span style="color:#f92672">=</span> userService.<span style="color:#a6e22e">findById</span>(id);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (user <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> ResponseEntity.<span style="color:#a6e22e">notFound</span>().<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ResponseEntity.<span style="color:#a6e22e">ok</span>(user);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@PostMapping</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> ResponseEntity<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">createUser</span>(<span style="color:#a6e22e">@RequestBody</span> <span style="color:#a6e22e">@Valid</span> User user) {
+</span></span><span style="display:flex;"><span>        User created <span style="color:#f92672">=</span> userService.<span style="color:#a6e22e">create</span>(user);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ResponseEntity
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">status</span>(HttpStatus.<span style="color:#a6e22e">CREATED</span>)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">body</span>(created);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@PutMapping</span>(<span style="color:#e6db74">&#34;/{id}&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> ResponseEntity<span style="color:#f92672">&lt;</span>User<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">updateUser</span>(
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">@PathVariable</span> Long id,
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">@RequestBody</span> <span style="color:#a6e22e">@Valid</span> User user) {
+</span></span><span style="display:flex;"><span>        User updated <span style="color:#f92672">=</span> userService.<span style="color:#a6e22e">update</span>(id, user);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ResponseEntity.<span style="color:#a6e22e">ok</span>(updated);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@DeleteMapping</span>(<span style="color:#e6db74">&#34;/{id}&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> ResponseEntity<span style="color:#f92672">&lt;</span>Void<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">deleteUser</span>(<span style="color:#a6e22e">@PathVariable</span> Long id) {
+</span></span><span style="display:flex;"><span>        userService.<span style="color:#a6e22e">delete</span>(id);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ResponseEntity.<span style="color:#a6e22e">noContent</span>().<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="http-status-codes">HTTP Status Codes<a hidden class="anchor" aria-hidden="true" href="#http-status-codes">#</a></h2>
+<h3 id="common-status-codes">Common Status Codes<a hidden class="anchor" aria-hidden="true" href="#common-status-codes">#</a></h3>
+<ul>
+<li><strong>200 OK</strong>: Request thành công</li>
+<li><strong>201 Created</strong>: Resource được tạo thành công</li>
+<li><strong>204 No Content</strong>: Thành công nhưng không có content</li>
+<li><strong>400 Bad Request</strong>: Request không hợp lệ</li>
+<li><strong>401 Unauthorized</strong>: Chưa authenticate</li>
+<li><strong>403 Forbidden</strong>: Không có quyền truy cập</li>
+<li><strong>404 Not Found</strong>: Resource không tồn tại</li>
+<li><strong>500 Internal Server Error</strong>: Lỗi server</li>
+</ul>
+<h2 id="requestresponse-dtos">Request/Response DTOs<a hidden class="anchor" aria-hidden="true" href="#requestresponse-dtos">#</a></h2>
+<h3 id="data-transfer-objects">Data Transfer Objects<a hidden class="anchor" aria-hidden="true" href="#data-transfer-objects">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Data</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@NoArgsConstructor</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@AllArgsConstructor</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserDTO</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Long id;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@NotBlank</span>(message <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;Name is required&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String name;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Email</span>(message <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;Invalid email format&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String email;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Size</span>(min <span style="color:#f92672">=</span> 8, message <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;Password must be at least 8 characters&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String password;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Data</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserResponseDTO</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Long id;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String name;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String email;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> LocalDateTime createdAt;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="exception-handling">Exception Handling<a hidden class="anchor" aria-hidden="true" href="#exception-handling">#</a></h2>
+<h3 id="global-exception-handler">Global Exception Handler<a hidden class="anchor" aria-hidden="true" href="#global-exception-handler">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@RestControllerAdvice</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">GlobalExceptionHandler</span> {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@ExceptionHandler</span>(ResourceNotFoundException.<span style="color:#a6e22e">class</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> ResponseEntity<span style="color:#f92672">&lt;</span>ErrorResponse<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">handleNotFound</span>(
+</span></span><span style="display:flex;"><span>            ResourceNotFoundException ex) {
+</span></span><span style="display:flex;"><span>        ErrorResponse error <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ErrorResponse(
+</span></span><span style="display:flex;"><span>            HttpStatus.<span style="color:#a6e22e">NOT_FOUND</span>.<span style="color:#a6e22e">value</span>(),
+</span></span><span style="display:flex;"><span>            ex.<span style="color:#a6e22e">getMessage</span>(),
+</span></span><span style="display:flex;"><span>            LocalDateTime.<span style="color:#a6e22e">now</span>()
+</span></span><span style="display:flex;"><span>        );
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ResponseEntity.<span style="color:#a6e22e">status</span>(HttpStatus.<span style="color:#a6e22e">NOT_FOUND</span>).<span style="color:#a6e22e">body</span>(error);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@ExceptionHandler</span>(MethodArgumentNotValidException.<span style="color:#a6e22e">class</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> ResponseEntity<span style="color:#f92672">&lt;</span>ValidationErrorResponse<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">handleValidation</span>(
+</span></span><span style="display:flex;"><span>            MethodArgumentNotValidException ex) {
+</span></span><span style="display:flex;"><span>        Map<span style="color:#f92672">&lt;</span>String, String<span style="color:#f92672">&gt;</span> errors <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;</span>();
+</span></span><span style="display:flex;"><span>        ex.<span style="color:#a6e22e">getBindingResult</span>().<span style="color:#a6e22e">getFieldErrors</span>().<span style="color:#a6e22e">forEach</span>(error <span style="color:#f92672">-&gt;</span> 
+</span></span><span style="display:flex;"><span>            errors.<span style="color:#a6e22e">put</span>(error.<span style="color:#a6e22e">getField</span>(), error.<span style="color:#a6e22e">getDefaultMessage</span>())
+</span></span><span style="display:flex;"><span>        );
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        ValidationErrorResponse response <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ValidationErrorResponse(
+</span></span><span style="display:flex;"><span>            HttpStatus.<span style="color:#a6e22e">BAD_REQUEST</span>.<span style="color:#a6e22e">value</span>(),
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;Validation failed&#34;</span>,
+</span></span><span style="display:flex;"><span>            errors
+</span></span><span style="display:flex;"><span>        );
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ResponseEntity.<span style="color:#a6e22e">badRequest</span>().<span style="color:#a6e22e">body</span>(response);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="pagination--sorting">Pagination &amp; Sorting<a hidden class="anchor" aria-hidden="true" href="#pagination--sorting">#</a></h2>
+<h3 id="pageable-endpoints">Pageable Endpoints<a hidden class="anchor" aria-hidden="true" href="#pageable-endpoints">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@GetMapping</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Page<span style="color:#f92672">&lt;</span>UserDTO<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">getUsers</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@RequestParam</span>(defaultValue <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;0&#34;</span>) <span style="color:#66d9ef">int</span> page,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@RequestParam</span>(defaultValue <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;10&#34;</span>) <span style="color:#66d9ef">int</span> size,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@RequestParam</span>(defaultValue <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;id&#34;</span>) String sortBy,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@RequestParam</span>(defaultValue <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;asc&#34;</span>) String direction) {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    Sort sort <span style="color:#f92672">=</span> direction.<span style="color:#a6e22e">equalsIgnoreCase</span>(<span style="color:#e6db74">&#34;desc&#34;</span>) 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">?</span> Sort.<span style="color:#a6e22e">by</span>(sortBy).<span style="color:#a6e22e">descending</span>() 
+</span></span><span style="display:flex;"><span>        : Sort.<span style="color:#a6e22e">by</span>(sortBy).<span style="color:#a6e22e">ascending</span>();
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    Pageable pageable <span style="color:#f92672">=</span> PageRequest.<span style="color:#a6e22e">of</span>(page, size, sort);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> userService.<span style="color:#a6e22e">findAll</span>(pageable);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="api-versioning">API Versioning<a hidden class="anchor" aria-hidden="true" href="#api-versioning">#</a></h2>
+<h3 id="uri-versioning">URI Versioning<a hidden class="anchor" aria-hidden="true" href="#uri-versioning">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@RestController</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@RequestMapping</span>(<span style="color:#e6db74">&#34;/api/v1/users&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserControllerV1</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Version 1 implementation</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@RestController</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@RequestMapping</span>(<span style="color:#e6db74">&#34;/api/v2/users&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserControllerV2</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Version 2 implementation</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="authentication--authorization">Authentication &amp; Authorization<a hidden class="anchor" aria-hidden="true" href="#authentication--authorization">#</a></h2>
+<h3 id="jwt-authentication">JWT Authentication<a hidden class="anchor" aria-hidden="true" href="#jwt-authentication">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@EnableWebSecurity</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SecurityConfig</span> <span style="color:#66d9ef">extends</span> WebSecurityConfigurerAdapter {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">configure</span>(HttpSecurity http) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        http
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">csrf</span>().<span style="color:#a6e22e">disable</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">authorizeRequests</span>()
+</span></span><span style="display:flex;"><span>                .<span style="color:#a6e22e">antMatchers</span>(<span style="color:#e6db74">&#34;/api/auth/**&#34;</span>).<span style="color:#a6e22e">permitAll</span>()
+</span></span><span style="display:flex;"><span>                .<span style="color:#a6e22e">antMatchers</span>(<span style="color:#e6db74">&#34;/api/admin/**&#34;</span>).<span style="color:#a6e22e">hasRole</span>(<span style="color:#e6db74">&#34;ADMIN&#34;</span>)
+</span></span><span style="display:flex;"><span>                .<span style="color:#a6e22e">anyRequest</span>().<span style="color:#a6e22e">authenticated</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">and</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">addFilter</span>(<span style="color:#66d9ef">new</span> JwtAuthenticationFilter(authenticationManager()))
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">addFilter</span>(<span style="color:#66d9ef">new</span> JwtAuthorizationFilter(authenticationManager()))
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">sessionManagement</span>()
+</span></span><span style="display:flex;"><span>                .<span style="color:#a6e22e">sessionCreationPolicy</span>(SessionCreationPolicy.<span style="color:#a6e22e">STATELESS</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="api-documentation">API Documentation<a hidden class="anchor" aria-hidden="true" href="#api-documentation">#</a></h2>
+<h3 id="swaggeropenapi">Swagger/OpenAPI<a hidden class="anchor" aria-hidden="true" href="#swaggeropenapi">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@EnableSwagger2</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SwaggerConfig</span> {
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Docket <span style="color:#a6e22e">api</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> Docket(DocumentationType.<span style="color:#a6e22e">SWAGGER_2</span>)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">select</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">apis</span>(RequestHandlerSelectors.<span style="color:#a6e22e">basePackage</span>(<span style="color:#e6db74">&#34;com.example.api&#34;</span>))
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">paths</span>(PathSelectors.<span style="color:#a6e22e">any</span>())
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">build</span>()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">apiInfo</span>(apiInfo());
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> ApiInfo <span style="color:#a6e22e">apiInfo</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> ApiInfoBuilder()
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">title</span>(<span style="color:#e6db74">&#34;User API&#34;</span>)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">description</span>(<span style="color:#e6db74">&#34;RESTful API for User Management&#34;</span>)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">version</span>(<span style="color:#e6db74">&#34;1.0.0&#34;</span>)
+</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">build</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="best-practices">Best Practices<a hidden class="anchor" aria-hidden="true" href="#best-practices">#</a></h2>
+<ol>
+<li><strong>Use Nouns for Resources</strong>: <code>/api/users</code> not <code>/api/getUsers</code></li>
+<li><strong>Use HTTP Methods Correctly</strong>: GET for read, POST for create, etc.</li>
+<li><strong>Return Appropriate Status Codes</strong>: 200, 201, 404, 500, etc.</li>
+<li><strong>Version Your API</strong>: <code>/api/v1/</code>, <code>/api/v2/</code></li>
+<li><strong>Validate Input</strong>: Use <code>@Valid</code> and custom validators</li>
+<li><strong>Handle Errors Gracefully</strong>: Consistent error responses</li>
+<li><strong>Use DTOs</strong>: Separate domain models from API models</li>
+<li><strong>Document Your API</strong>: Swagger, OpenAPI, etc.</li>
+<li><strong>Implement Pagination</strong>: For large datasets</li>
+<li><strong>Security First</strong>: Authentication, authorization, HTTPS</li>
+</ol>
+<h2 id="kết-luận">Kết luận<a hidden class="anchor" aria-hidden="true" href="#kết-luận">#</a></h2>
+<p>RESTful API design là kỹ năng quan trọng trong phát triển web services. Tuân thủ các best practices sẽ giúp API của bạn dễ sử dụng, maintain, và scale.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="//localhost:1313/">Tien Phat&#39;s blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

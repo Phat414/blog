@@ -1,0 +1,32 @@
+baseURL = '/'
+languageCode = 'vi'
+title = "Tien Phat's blog"
+theme = 'PaperMod'
+
+[params]
+  description = "Blog cá nhân của tôi - Chia sẻ những suy nghĩ, kinh nghiệm và câu chuyện cuộc sống"
+  discord = "ayrkira"
+
+[params.author]
+  name = "Đào Tiến Phát"
+  email = "dtphat414@gmail.com"
+
+[markup.goldmark.renderer]
+unsafe = true
+
+[menu]
+  [[menu.main]]
+    identifier = "home"
+    name = "Trang chủ"
+    url = "/"
+    weight = 1
+  [[menu.main]]
+    identifier = "about"
+    name = "Về tôi"
+    url = "/about/"
+    weight = 2
+  [[menu.main]]
+    identifier = "contact"
+    name = "Liên hệ"
+    url = "/contact/"
+    weight = 3
